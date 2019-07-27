@@ -1,0 +1,6 @@
+{
+    "prefix": "/",
+    "token": "<discord_bot_token>",
+    "googleAPIkey": "<google_api_key>",
+    "riotAPIkey": "<riot_api_key>"
+}
