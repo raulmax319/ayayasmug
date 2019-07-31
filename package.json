@@ -1,0 +1,27 @@
+{
+  "name": "ayayasmug",
+  "version": "1.0.0",
+  "description": "no description",
+  "main": "index.js",
+  "dependencies": {
+    "discord.js": "^11.5.1",
+    "node-opus": "^0.3.2",
+    "request": "^2.88.0",
+    "simple-youtube-api": "^5.2.1",
+    "ytdl-core": "^0.29.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raulmax319/ayayasmug.git"
+  },
+  "author": "raulmax319",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/raulmax319/ayayasmug/issues"
+  },
+  "homepage": "https://github.com/raulmax319/ayayasmug#readme"
+}
