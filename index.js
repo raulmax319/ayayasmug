@@ -201,11 +201,6 @@ client.on('message', async message => {
                 func.getLeagueRank(profileInfo.id, (leagueInfo) => {
                     func.allChampMasteries(profileInfo.id, (masteries) => {
                         func.getChampionList((list) => {
-                            for(var key in list.data){
-                                if(masteries[0].championId == key){
-                                    console.log(key);
-                                }
-                            }
 
                             let fields = [{
                                 name: 'Masteries',
