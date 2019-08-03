@@ -14,8 +14,8 @@ const request = require('request');
 
 const client = new discord.Client();
 const youtube = new Youtube(googleAPIkey);
-const leaguePatch = '9.14.1';
 let queue = new Map();
+const leaguePatch = '9.14.1';
 
 let func = {};
 
@@ -112,34 +112,36 @@ client.on('reconnecting', () => console.log('Reconnecting...'));
 
 client.on('message', async message => {
     const member = message.member;
+    const textChannel = message.channel
     const mess = message.content.toLowerCase();
-    const comando = message.content.split(' ')[0].replace(prefix, '');
-    const args = message.content.split(' ');
+    const comando = mess.split(' ')[0].replace(prefix, '');
+    const args = mess.split(' ');
     const searchString = args.slice(1).join(' ');
     const serverQueue = queue.get(message.guild.id);
     const fila = '';
 
-    switch(comando.toLowerCase()) {
+    switch(comando) {
         case 'play':
             const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
             const voiceChannel = member.voiceChannel;
-            if(!voiceChannel) return message.channel.send('Just connect to a voice channel 4Head');
+            if(!voiceChannel) return textChannel.send('Just connect to a voice channel 4Head');
             const permicoes = voiceChannel.permissionsFor(message.client.user);
             if(!permicoes.has('CONNECT')){
-                return message.channel.send('No permission to connect to the Voice Channel');
+                return textChannel.send('No permission to connect to the Voice Channel');
             }
             if(!permicoes.has('SPEAK')){
-                return message.channel.send('No permission to speak in the Voice Channel');
+                return textChannel.send('No permission to speak in the Voice Channel');
             }
         
             if(url.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)){
                 const playlist = await youtube.getPlaylist(url);
                 const videos = await playlist.getVideos();
+                console.log(playlist);
                 for (const video of Object.values(videos)) {
                     const video_ = await youtube.getVideoByID(video.id);
                     await func.addToQueue(video_, message, voiceChannel, true);
                 }
-                return message.channel.send(`Playlist: **${playlist.title}** has been added to the queue pepeOK`);
+                return textChannel.send(`Playlist: **${playlist.title}** has been added to the queue pepeOK`);
             } else {
                 try {
                     var video = await youtube.getVideo(url);
@@ -149,7 +151,7 @@ client.on('message', async message => {
                         var video = await youtube.getVideoByID(videos[0].id);
                     } catch (err) {
                         console.error(err);
-                        return message.channel.send('Found nothing but leaves :leaves:');
+                        return textChannel.send('Found nothing but leaves :leaves:');
                     }
                 }
             }
@@ -157,15 +159,15 @@ client.on('message', async message => {
             
 
         case 'skip':
-            if(!message.member.voiceChannel) return message.channel.send('Just connect to a voice channel 4Head');
-            if(!serverQueue) return message.channel.send('The queue is empty');
-            message.channel.send('Song skipped')
+            if(!message.member.voiceChannel) return textChannel.send('Just connect to a voice channel 4Head');
+            if(!serverQueue) return textChannel.send('The queue is empty');
+            textChannel.send('Song skipped')
             serverQueue.connection.dispatcher.end(`skipped ${serverQueue.songs[0].title}`);
             return undefined;
 
         case 'queue':
-            if(!serverQueue) return message.channel.send('The queue is empty');
-            return message.channel.send(`
+            if(!serverQueue) return textChannel.send('The queue is empty');
+            return textChannel.send(`
         **Queue**
         ${serverQueue.songs.map(song => `**>** ${song.title}`).join('\n')}
         **Playing now:** ${serverQueue.songs[0].title}
@@ -173,40 +175,76 @@ client.on('message', async message => {
 
         case 'pepega':
             message.reply('I\'m not Pepega :point_down: he is');
+            return undefined;
 
         case 'stop':
-            if(!message.member.voiceChannel) return message.channel.send('Just connect to a voice channel 4Head');
-            if(!serverQueue) return message.channel.send('The queue is empty');
+            if(!message.member.voiceChannel) return textChannel.send('Just connect to a voice channel 4Head');
+            if(!serverQueue) return textChannel.send('The queue is empty');
             serverQueue.songs = [];
             serverQueue.connection.dispatcher.end('stopped the song');
             return undefined;
 
         case 'np':
-            if(!message.member.voiceChannel) return message.channel.send('Just connect to a voice channel 4Head');
-            if(!serverQueue) return message.channel.send('The queue is empty');
-            return message.channel.send(`pepeJAM Playing now: **${serverQueue.songs[0].title}** pepeJAMMER`);
+            if(!message.member.voiceChannel) return textChannel.send('Just connect to a voice channel 4Head');
+            if(!serverQueue) return textChannel.send('The queue is empty');
+            return textChannel.send(`pepeJAM Playing now: **${serverQueue.songs[0].title}** pepeJAMMER`);
 
         case 'vol':
-            if(!message.member.voiceChannel) return message.channel.send('Just connect to a voice channel 4Head');
-            if(!args[1]) return message.channel.send(`Volume: **${serverQueue.volume}**`);
+            if(!message.member.voiceChannel) return textChannel.send('Just connect to a voice channel 4Head');
+            if(!args[1]) return textChannel.send(`Volume: **${serverQueue.volume}**`);
             serverQueue.volume = args[1];
             serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 5);
-            return message.channel.send(`Volume now is: **${args[1]}**`);
+            return textChannel.send(`Volume now is: **${args[1]}**`);
 
         case 'lolprofile': // testando apenas
             if(message.author.bot) return undefined;
             func.searchLeagueProfile(searchString, (profileInfo) => {
                 console.log(profileInfo.id);
-                const icons = `http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/img/profileicon/${profileInfo.profileIconId}.png `;
                 func.getLeagueRank(profileInfo.id, (leagueInfo) => {
                     func.allChampMasteries(profileInfo.id, (masteries) => {
-                        func.getChampionList((list) => {
+                        func.getChampionList(async (list) => {
+
+                            const icons = `http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/img/profileicon/${profileInfo.profileIconId}.png `;
+                            
+                            //transforma o objeto json de champions em map
+                            const objToMap = (obj => {
+                                const mapp = new Map();
+                                Object.keys(obj).forEach(k => {
+                                    mapp.set(k, obj[k])
+                                })
+                                return mapp;
+                            });
+                            let listMap = await objToMap(list);
+                            
+                            //procura nos valores dos objetos mapeados o id e retorna o valor da key correspondente a esse id
+                            const getKey = (map, searchString) => {
+                                for(const [key, value] of map.entries()) {
+                                    if(value.key == searchString) return key;
+                                }
+                            }
+
+                            //hardcoded por que so quero os 3 primeiros valores, o resto nao importa por agora depois vou mudar quem sabe talvez
+                            let champString1 = getKey(listMap, masteries[0].championId);
+                            let champString2 = getKey(listMap, masteries[1].championId);
+                            let champString3 = getKey(listMap, masteries[2].championId);
+                            const emotes = { 
+                                emoteChamp1: client.emojis.find(emoji => emoji.name === `${champString1}`),
+                                emoteChamp2: client.emojis.find(emoji => emoji.name === `${champString2}`),
+                                emoteChamp3: client.emojis.find(emoji => emoji.name === `${champString3}`),
+                                emoteMastery1: client.emojis.find(emoji => emoji.name === `mastery_${masteries[0].championLevel}`),
+                                emoteMastery2: client.emojis.find(emoji => emoji.name === `mastery_${masteries[1].championLevel}`),
+                                emoteMastery3: client.emojis.find(emoji => emoji.name === `mastery_${masteries[2].championLevel}`),
+                                emoteRankFlex3: ':leaves:',
+                                emoteRankFlexSR: ':leaves:',
+                                emoteRankSolo: ':leaves:',
+                                emoteRankTft: ':leaves:',
+                            }
 
                             let fields = [{
                                 name: 'Masteries',
-                                value: `1. ${masteries[0].championId}: ${masteries[0].championPoints}
-                                        2. ${masteries[1].championId}: ${masteries[1].championPoints}
-                                        3. ${masteries[2].championId}: ${masteries[2].championPoints}`,
+                                value: `${emotes.emoteChamp1}  ${emotes.emoteMastery1} ${masteries[0].championPoints}
+                                        ${emotes.emoteChamp2}  ${emotes.emoteMastery2} ${masteries[1].championPoints}
+                                        ${emotes.emoteChamp3}  ${emotes.emoteMastery3} ${masteries[2].championPoints}`,
                                 inline: true
                             },
                             {
@@ -214,50 +252,83 @@ client.on('message', async message => {
                                 value: profileInfo.summonerLevel,
                                 inline: true
                             }];
-                            
-                            if(leagueInfo.length == 1){
-                                if(leagueInfo[0].queueType === 'RANKED_TFT'){
-                                var tft = {
-                                        tier: leagueInfo[0].tier,
-                                        rank: leagueInfo[0].rank,
-                                        lp: leagueInfo[0].leaguePoints,
-                                        wins: leagueInfo[0].wins,
-                                        losses: leagueInfo[0].losses
-                                    };
-                                }
-                                if(leagueInfo[0].queueType === 'RANKED_SOLO_5x5'){
-                                var solo = {
-                                        tier: leagueInfo[0].tier,
-                                        rank: leagueInfo[0].rank,
-                                        lp: leagueInfo[0].leaguePoints,
-                                        wins: leagueInfo[0].wins,
-                                        losses: leagueInfo[0].losses
-                                    };
-                                }
-                                if(leagueInfo[0].queueType === 'RANKED_FLEX_SR'){
-                                    var flex = {
-                                        tier: leagueInfo[0].tier,
-                                        rank: leagueInfo[0].rank,
-                                        lp: leagueInfo[0].leaguePoints,
-                                        wins: leagueInfo[0].wins,
-                                        losses: leagueInfo[0].losses
-                                    };
+
+                            var tft = {
+                                tier: ':leaves:',
+                                rank: ':leaves:',
+                                leaguePoints: ':leaves:',
+                                wins: 0,
+                                losses: 1, //NaN se 0, nao existe 0/0
+                                wr: (100 * this.wins) / (this.wins + this.losses) //undefined ou NaN preguiça de apagar
+                            };
+                            var flex3x3 = {
+                                tier: ':leaves:',
+                                rank: ':leaves:',
+                                leaguePoints: ':leaves:',
+                                wins: 0,
+                                losses: 1,
+                                wr: (100 * this.wins) / (this.wins + this.losses)
+                            };
+                            var solo = {
+                                tier: ':leaves:',
+                                rank: ':leaves:',
+                                leaguePoints: ':leaves:',
+                                wins: 0,
+                                losses: 1,
+                                wr: (100 * this.wins) / (this.wins + this.losses)
+                            };
+                            var flexSR = {
+                                tier: ':leaves:',
+                                rank: ':leaves:',
+                                leaguePoints: ':leaves:',
+                                wins: 0,
+                                losses: 1,
+                                wr: (100 * this.wins) / (this.wins + this.losses)
+                            };
+
+                            //tentar outra maneira mais tarde
+                            const leagueList = await objToMap(leagueInfo);
+                            //console.log(leagueList);
+
+                            const getLeague = (map, values) => {
+                                for(const [key, value] of map.entries()){
+                                    if(value.queueType == values) return value;
                                 }
                             }
+                            if(!getLeague(leagueList, 'RANKED_SOLO_5x5'));
+                            else {
+                                solo = getLeague(leagueList, 'RANKED_SOLO_5x5');
+                                emotes.emoteRankSolo = client.emojis.find(emoji => emoji.name === `${solo.tier}`)
+                            }
+                            if(!getLeague(leagueList, 'RANKED_TFT'));
+                            else {
+                                tft = getLeague(leagueList, 'RANKED_TFT');
+                                emotes.emoteRankTft = client.emojis.find(emoji => emoji.name === `${tft.tier}`)
+                            }
+                            if(!getLeague(leagueList, 'RANKED_FLEX_TT'));
+                            else {
+                                flex3x3 = getLeague(leagueList, 'RANKED_FLEX_TT');
+                                emotes.emoteRankFlex3 = client.emojis.find(emoji => emoji.name === `${flex3x3.tier}`)
+                            }
+                            if(!getLeague(leagueList, 'RANKED_FLEX_SR'));
+                            else {
+                                flexSR = getLeague(leagueList, 'RANKED_FLEX_SR');
+                                emotes.emoteRankFlexSR = client.emojis.find(emoji => emoji.name === `${flexSR.tier}`)
+                            }
 
-                            message.channel.send('', new discord.RichEmbed()
+                            textChannel.send('', new discord.RichEmbed()
                             .setColor('#01feb9')
                             .setTitle(`Perfil: ${profileInfo.name} :eyes:`)
                             .addField(fields[0].name, fields[0].value, true)
                             .addField(fields[1].name, fields[1].value, true)
                             .setThumbnail(icons)
-                            .addField('\nRanked Stats:', `
-                            **Solo/duo:** ${solo.tier} ${solo.rank} | W: ${solo.wins} / L: ${solo.losses} / wr: ${(100 * solo.wins) / (solo.wins + solo.losses)}% **${solo.lp}LP**
-                            **Flex:** :leaves:
-                            **Ranked 3x3:** :leaves:
-                            **TFT:** :leaves:
-                            `)
-                        );
+                            .addField('Ranked Stats:', `
+                            **Solo/duo:** ${emotes.emoteRankSolo} ${solo.rank} | W: ${solo.wins} / L: ${solo.losses} / wr: ${Math.round((100 * solo.wins) / (solo.wins + solo.losses))}% **${solo.leaguePoints}LP**
+                            **Flex:** ${emotes.emoteRankFlexSR} ${flexSR.rank} | W: ${flexSR.wins} / L: ${flexSR.losses} / wr: ${Math.round((100 * flexSR.wins) / (flexSR.wins + flexSR.losses))}% **${flexSR.leaguePoints}LP**
+                            **Ranked 3x3:** ${emotes.emoteRankFlex3} ${flex3x3.rank} | W: ${flex3x3.wins} / L: ${flex3x3.losses} / wr: ${Math.round((100 * flex3x3.wins) / (flex3x3.wins + flex3x3.losses))}% **${flex3x3.leaguePoints}LP**
+                            **TFT:** ${emotes.emoteRankTft} ${tft.rank} | W: ${tft.wins} / L: ${tft.losses} / wr: ${Math.round((100 * tft.wins) / (tft.wins + tft.losses))}% **${tft.leaguePoints}LP**
+                            `, false)
+                            );
                         });
                     });
                 });
