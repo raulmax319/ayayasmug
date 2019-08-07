@@ -8,6 +8,9 @@ const {
     riotAPIkey,
 } = require('./config.json');
 
+googleAPIkey = process.env.googleAPIkey;
+riotAPIkey = process.env.riotAPIkey;
+
 const ytdl = require('ytdl-core');
 const Youtube = require('simple-youtube-api');
 const request = require('request');
