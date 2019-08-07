@@ -1,6 +1,6 @@
 {
   "name": "ayayasmug",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "no description",
   "main": "index.js",
   "dependencies": {
@@ -12,6 +12,7 @@
   },
   "devDependencies": {},
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -19,7 +20,7 @@
     "url": "git+https://github.com/raulmax319/ayayasmug.git"
   },
   "author": "raulmax319",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/raulmax319/ayayasmug/issues"
   },
