@@ -98,7 +98,7 @@ f.play = (guild, song) => {
     .setDescription(`:white_check_mark: pepeJAM Playing now: **${song.title}** pepeJAMMER`)
     );
 }
-f.addToQueue = async (video, message, voiceChannel, playlist = false) => {
+f.addToQueue = async function (video, message, voiceChannel, playlist = false) {
     const serverQueue = queue.get(message.guild.id);
     const song = {
         id: video.id,
@@ -155,9 +155,10 @@ client.on('message', async message => {
     const searchString = args.slice(1).join(' ');
     const serverQueue = queue.get(message.guild.id);
 
+    if(!args[0].startsWith(prefix)) return undefined;
     switch(comando) {
         case 'play':
-            const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
+            var url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
             const voiceChannel = member.voiceChannel;
             if(!voiceChannel) return textChannel.send('', embed
             .setColor(colors.grayish)
