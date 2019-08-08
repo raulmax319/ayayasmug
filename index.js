@@ -1,7 +1,7 @@
 ﻿const discord = require('discord.js');
 const Util = require('discord.js');
 
-const {
+let {
     prefix,
     token,
     googleAPIkey,
