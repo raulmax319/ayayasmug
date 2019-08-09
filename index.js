@@ -8,6 +8,7 @@ let {
     riotAPIkey,
 } = require('./config.json');
 
+token = process.env.token;
 googleAPIkey = process.env.googleAPIkey;
 riotAPIkey = process.env.riotAPIkey;
 
@@ -155,11 +156,11 @@ client.on('message', async message => {
     const searchString = args.slice(1).join(' ');
     const serverQueue = queue.get(message.guild.id);
 
-    if(!args[0].startsWith(prefix)) return undefined;
     switch(comando) {
         case 'play':
-            var url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
+            const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
             const voiceChannel = member.voiceChannel;
+            console.log(url);
             if(!voiceChannel) return textChannel.send('', embed
             .setColor(colors.grayish)
             .setDescription(':x: You need to connect to a voice channel first.')
@@ -197,10 +198,7 @@ client.on('message', async message => {
                         var video = await youtube.getVideoByID(videos[0].id);
                     } catch (err) {
                         console.error(err);
-                        return textChannel.send('', embed
-                        .setColor(colors.black)
-                        .setDescription('Found nothing but leaves :leaves:')
-                        );
+                        return message.reply('Found nothing but leaves :leaves:');
                     }
                 }
             }
@@ -268,20 +266,38 @@ client.on('message', async message => {
             );
 
         case 'vol':
+            let sound = ':sound:';
             if(!message.member.voiceChannel) return textChannel.send('', embed
             .setColor(colors.red)
             .setDescription(':x: You need to connect to a voice channel first.')
             );
-            if(!args[1]) return textChannel.send(`Volume: **${serverQueue.volume}**`);
+            if(!serverQueue) return message.reply('No point in changing the volume if there\'s nothing playing :blush:');
+            if(args[1] > 5) sound = ':loud_sound:';
+            if(args[1] == 0) sound = ':mute:';
+            if (args[1] > 0 && args[1] < 3) sound = ':speaker:';
+            if(!args[1]) return textChannel.send('', embed
+            .setColor(colors.grayish)
+            .setDescription(`Volume: **${serverQueue.volume}** ${sound}`)
+            );
             serverQueue.volume = args[1];
             serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 5);
-            return textChannel.send(`Volume now is: **${args[1]}**`);
+            return textChannel.send('', embed
+            .setColor(colors.grayish)
+            .setDescription(`Volume now is: **${args[1]}** ${sound}`)
+            );
 
         case 'lolprofile': // testando apenas
             let locationString = args.slice(1, 2).join(' ');
-            const profileString = args.slice(2).join(' ');
-
-            const serverString = f.getLocation(locationString, serverList);
+            let profileString = '';
+            let serverString = 'br1';
+            if(locationString.length > 2) {
+                profileString = searchString;
+                locationString = 'br';
+            } else {
+                profileString = args.slice(2).join(' ');
+                serverString = f.getLocation(locationString, serverList);
+            }
+            
             locationString = (locationString == 'na') ? 'us' : locationString;
             console.log(locationString);
             console.log(profileString);
@@ -289,7 +305,6 @@ client.on('message', async message => {
             
             if(message.author.bot) return undefined;
             if(!locationString && !profileString) return textChannel.reply('You need to specify a location and a profile name to search.');
-            if(!locationString) return textChannel.reply('You need to specify a location in the search.');
             if(!profileString) return textChannel.reply('You need to specify a profile name in the search.');
             
             f.searchLeagueProfile(serverString, profileString, (profileInfo) => {
@@ -317,7 +332,7 @@ client.on('message', async message => {
                                 }
                             }
 
-                            //hardcoded because i want only the 3 first values, the rest doesnt matter mayb i'll change it later idk yea yknow
+                            //hardcoded because i im lazy, i'll change it later idk yea yknow
                             let champString1 = getKey(listMap, masteries[0].championId);
                             let champString2 = getKey(listMap, masteries[1].championId);
                             let champString3 = getKey(listMap, masteries[2].championId);
@@ -435,5 +450,5 @@ client.on('message', async message => {
     });
 
 
-client.login(process.env.token);
+client.login(token);
 
