@@ -1,5 +1,4 @@
-﻿const discord = require('discord.js');
-const Util = require('discord.js');
+﻿const { Client, Util, RichEmbed } = require('discord.js');
 
 let {
     prefix,
@@ -16,10 +15,10 @@ const ytdl = require('ytdl-core');
 const Youtube = require('simple-youtube-api');
 const request = require('request');
 
-const client = new discord.Client();
+const client = new Client();
 const youtube = new Youtube(googleAPIkey);
 let queue = new Map();
-let embed = new discord.RichEmbed();
+let embed = new RichEmbed();
 const leaguePatch = '9.14.1';
 
 const colors = {
@@ -45,7 +44,7 @@ const serverList = {
     'kr': 'kr1'
 }
 
-let f = {};
+const f = {};
 
 f.searchLeagueProfile = (server, query, cb) => {
     request(`https://${server}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(query)}?api_key=${riotAPIkey}`, (err, res, body) => {
@@ -152,10 +151,11 @@ client.on('message', async message => {
     const textChannel = message.channel
     const mess = message.content.toLowerCase();
     const comando = mess.split(' ')[0].replace(prefix, '');
-    const args = mess.split(' ');
+    const args = message.content.split(' ');
     const searchString = args.slice(1).join(' ');
     const serverQueue = queue.get(message.guild.id);
 
+    if(!args[0].startsWith(prefix)) return undefined;
     switch(comando) {
         case 'play':
             const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
@@ -184,9 +184,11 @@ client.on('message', async message => {
                 const videos = await playlist.getVideos();
                 for (const video of Object.values(videos)) {
                     const video_ = await youtube.getVideoByID(video.id);
+                    console.log(`${video.title} was added to the queue.`);
                     await f.addToQueue(video_, message, voiceChannel, true);
                 }
-                return textChannel.send('', embed
+                return textChannel.send('', new RichEmbed()
+                .setThumbnail(playlist.thumbnails.default.url)
                 .setDescription(`:white_check_mark: Playlist: **${playlist.title}** has been added to the queue pepeOK`)
                 );
             } else {
@@ -211,7 +213,8 @@ client.on('message', async message => {
             .setDescription(':x: You need to connect to a voice channel first.')
             );
             if(!serverQueue) return textChannel.send('The queue is empty');
-            textChannel.send('', embed
+            console.log(serverQueue.songs[0]);
+            textChannel.send('', new RichEmbed()
             .setColor(colors.yellow)
             .setDescription('Song skipped :track_next:'));
             serverQueue.connection.dispatcher.end(`skipped ${serverQueue.songs[0].title}`);
@@ -222,13 +225,18 @@ client.on('message', async message => {
             .setColor(colors.grayish)
             .setDescription(':crab: The queue is empty :crab:')
             );
-            return textChannel.send('', embed
+            let titles = `\`${1}\`. [${serverQueue.songs[1].title}](#)` + '\n\n';
+            for (let i = 1; i < 10; ++i) {
+                titles = titles + `\`${i + 1}\`. [${serverQueue.songs[i + 1].title}]()` + '\n\n';
+            }
+
+            return textChannel.send('', new RichEmbed()
             .setColor(colors.blueish)
             .setTitle('Queue')
-            .setDescription(`
-            ${serverQueue.songs.map(song => `**:black_small_square: ** ${song.title}`).join('\n')}
-            **Playing now:** ${serverQueue.songs[0].title}
-            `)
+            .addField(`__Playing now__`, `[${serverQueue.songs[0].title}](#)` + '\n\n')
+            .addField('__Queued songs__',
+            `${titles}
+            ${serverQueue.songs.length} items queued.`)
             );
 
         case 'pepega':
@@ -429,7 +437,7 @@ client.on('message', async message => {
                                 emotes.emoteRankFlexSR = client.emojis.find(emoji => emoji.name === `${flexSR.tier}`)
                             }
 
-                            textChannel.send('', new discord.RichEmbed()
+                            textChannel.send('', new RichEmbed()
                             .setColor(colors.greenish)
                             .setTitle(`Perfil: ${profileInfo.name} :flag_${locationString}:`)
                             .addField(fields[0].name, fields[0].value, true)
