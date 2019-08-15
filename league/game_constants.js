@@ -67,5 +67,20 @@ module.exports = {
             '20': 'Crash Site',
             '21': 'Nexus Blitz',
         } [searchTerm];
+    },
+    serverList: (term) => {
+        return {
+            'na': 'na1',
+            'br': 'br1',
+            'euw': 'euw1',
+            'eune': 'eun1',
+            'lan': 'lan1',
+            'la': 'la1',
+            'tr': 'tr1',
+            'ru': 'ru',
+            'oce': 'oc1',
+            'jp': 'jp1',
+            'kr': 'kr'
+        } [term];
     }
 }

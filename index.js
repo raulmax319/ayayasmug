@@ -22,77 +22,63 @@ const leaguePatch = '9.14.1';
 let queue = new Map();
 let embed = new RichEmbed();
 
-const colors = {
-    red: '#ff0000',
-    greenish: '#01feb9',
-    blueish: '#4287f5',
-    black: '#000000',
-    yellow: '#ffd700',
-    grayish: '#bababa'
-}
-
 const f = {};
 
+//random hex for the color thingies
+f.color = () => {
+    let hex = `0x${'0123456789abcdef'.split('').map(function (v, i, a) {
+        return i>5 ? null : a[Math.floor(Math.random() * 16)] }).join('')}`;
+        return hex;
+}
 //league profile and matches requests and things
-f.searchLeagueProfile = (server, query, cb) => {
-    request(`https://${server}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(query)}?api_key=${riotAPIkey}`, (err, res, body) => {
+f.searchLeagueProfile = async (server, query, cb) => {
+    await request(`https://${server}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(query)}?api_key=${riotAPIkey}`, (err, res, body) => {
+        try {
+            let json = JSON.parse(body);
+            cb(json);
+        } catch (error) {
+            console.error(err);
+        }
+    });
+}
+f.getLeagueRank = async (server, id, cb) => {
+    await request(`https://${server}.api.riotgames.com/lol/league/v4/entries/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json);
     });
 }
-f.getLeagueRank = (server, id, cb) => {
-    request(`https://${server}.api.riotgames.com/lol/league/v4/entries/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
-        let json = JSON.parse(body);
-        cb(json);
-    });
-}
-f.getChampionList = (cb) => {
-    request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/champion.json`, (err, res, body) => {
+f.getChampionList = async (cb) => {
+    await request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/champion.json`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json.data);
     });
 }
-f.allChampMasteries = (server, id, cb) => {
-    request(`https://${server}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
+f.allChampMasteries = async (server, id, cb) => {
+    await request(`https://${server}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json);
     });
 }
-f.leagueRunes = (cb) => {
-    request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/runesReforged.json`, (err, res, body) => {
+f.leagueRunes = async (cb) => {
+    await request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/runesReforged.json`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json);
     });
 }
-f.summonerSpells = (cb) => {
-    request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/summoner.json`, (err, res, body) => {
+f.summonerSpells = async (cb) => {
+    await request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/summoner.json`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json.data);
     });
 }
-f.findMatch = (server, id, cb) => {
-    request(`https://${server}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
+f.findMatch = async (server, id, cb) => {
+    await request(`https://${server}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json);
     });
 }
-f.findEmoji = (emote) => {
-    return client.emojis.find(emoji => emoji.name === `${emote}`);
-}
-f.serverList = (term) => {
-    return {
-        'na': 'na1',
-        'br': 'br1',
-        'euw': 'euw1',
-        'eune': 'eun1',
-        'lan': 'lan1',
-        'la': 'la1',
-        'tr': 'tr1',
-        'ru': 'ru',
-        'oce': 'oc1',
-        'jp': 'jp1',
-        'kr': 'kr'
-    } [term];
+f.findEmoji = async (emote) => {
+    return await client.emojis.find(emoji => emoji.name === `${emote}`);
 }
 //youtube player things
 f.play = (guild, song) => {
@@ -114,7 +100,7 @@ f.play = (guild, song) => {
         .on('error', error => console.error(error));
     dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
     serverQueue.textChannel.send('', embed
-    .setColor(colors.blueish)
+    .setColor(f.color())
     .setDescription(`:white_check_mark: pepeJAM Playing now: **${song.title}** pepeJAMMER`)
     );
 }
@@ -151,7 +137,7 @@ f.addToQueue = async function (video, message, voiceChannel, playlist = false) {
         serverQueue.songs.push(song);
         if(playlist) return undefined;
         return message.channel.send('', embed
-        .setColor(colors.blueish)
+        .setColor(f.color())
         .setDescription(`:musical_note: **${song.title}** has been added to the queue.`)
         );
     }
@@ -162,7 +148,7 @@ client.on('ready', (event) => console.log('Connected'));
 
 client.on('error', console.error);
 
-client.on('disconnect', () => console.log('Disconnected. trying reconnection...'));
+client.on('disconnect', () => console.log('Disconnected. Trying reconnection...'));
 
 client.on('reconnecting', () => console.log('Reconnecting...'));
 
@@ -185,19 +171,19 @@ client.on('message', async message => {
             const voiceChannel = member.voiceChannel;
             console.log(url);
             if(!voiceChannel) return textChannel.send('', embed
-            .setColor(colors.grayish)
+            .setColor(f.color())
             .setDescription(':x: You need to connect to a voice channel first.')
             );
             const permicoes = voiceChannel.permissionsFor(message.client.user);
             if(!permicoes.has('CONNECT')){
                 return textChannel.send('', embed
-                .setColor(colors.red)
+                .setColor(f.color())
                 .setDescription(':no_entry_sign: No permission to connect to the Voice Channel')
                 );
             }
             if(!permicoes.has('SPEAK')){
                 return textChannel.send('', embed
-                .setColor(colors.red)
+                .setColor(f.color())
                 .setDescription(':no_entry_sign: No permission to speak in the Voice Channel')
                 );
             }
@@ -232,20 +218,20 @@ client.on('message', async message => {
 
         case 'skip':
             if(!message.member.voiceChannel) return textChannel.send('', embed
-            .setColor(colors.red)
+            .setColor(f.color())
             .setDescription(':x: You need to connect to a voice channel first.')
             );
             if(!serverQueue) return textChannel.send('The queue is empty');
             console.log(serverQueue.songs[0]);
             textChannel.send('', new RichEmbed()
-            .setColor(colors.yellow)
+            .setColor(f.color())
             .setDescription('Song skipped :track_next:'));
             serverQueue.connection.dispatcher.end(`${serverQueue.songs[0].title} skipped`);
             return undefined;
 
         case 'queue':
             if(!serverQueue) return textChannel.send('', embed
-            .setColor(colors.grayish)
+            .setColor(f.color())
             .setDescription(':crab: The queue is empty :crab:')
             );
             let titles = `\`${1}\`. [${serverQueue.songs[1].title}](#)` + '\n\n';
@@ -254,7 +240,7 @@ client.on('message', async message => {
             }
 
             return textChannel.send('', new RichEmbed()
-            .setColor(colors.blueish)
+            .setColor(f.color())
             .setTitle('Queue')
             .addField(`__Playing now__`, `[${serverQueue.songs[0].title}](#)` + '\n\n')
             .addField('__Queued songs__',
@@ -268,38 +254,38 @@ client.on('message', async message => {
 
         case 'stop':
             if(!message.member.voiceChannel) return textChannel.send('', embed
-            .setColor(colors.red)
+            .setColor(f.color())
             .setDescription(':x: You need to connect to a voice channel first.')
             );
             if(!serverQueue) return textChannel.send('', embed
-            .setColor(colors.grayish)
+            .setColor(f.color())
             .setDescription(':crab: The queue is empty :crab:')
             );
             serverQueue.songs = [];
             serverQueue.connection.dispatcher.end('stopped the song and left the channel');
             return textChannel.send('', embed
-            .setColor(colors.red)
+            .setColor(f.color())
             .setDescription(':stop_button: Stopped the song, leaving the voice Channel now...')
             );
 
         case 'np':
             if(!message.member.voiceChannel) return textChannel.send('', embed
-            .setColor(colors.red)
+            .setColor(f.color())
             .setDescription(':x: You need to connect to a voice channel first.')
             );
             if(!serverQueue) return textChannel.send('', embed
-            .setColor(colors.grayish)
+            .setColor(f.color())
             .setDescription(':crab: The queue is empty :crab:')
             );
             return textChannel.send('', embed
-            .setColor(colors.yellow)
+            .setColor(f.color())
             .setDescription(`${f.findEmoji('jervisAYAYA')} Playing now: **${serverQueue.songs[0].title}** :headphones:`)
             );
 
         case 'vol':
             let sound = ':sound:';
             if(!message.member.voiceChannel) return textChannel.send('', embed
-            .setColor(colors.red)
+            .setColor(f.color())
             .setDescription(':x: You need to connect to a voice channel first.')
             );
             if(!serverQueue) return message.reply('No point in changing the volume if there\'s nothing playing :blush:');
@@ -307,13 +293,13 @@ client.on('message', async message => {
             if(args[1] == 0) sound = ':mute:';
             if (args[1] > 0 && args[1] < 3) sound = ':speaker:';
             if(!args[1]) return textChannel.send('', embed
-            .setColor(colors.grayish)
+            .setColor(cf.color())
             .setDescription(`Volume: **${serverQueue.volume}** ${sound}`)
             );
             serverQueue.volume = args[1];
             serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 5);
             return textChannel.send('', embed
-            .setColor(colors.grayish)
+            .setColor(f.color())
             .setDescription(`Volume now is: **${args[1]}** ${sound}`)
             );
 
@@ -329,7 +315,7 @@ client.on('message', async message => {
                 locationString = 'br';
             } else {
                 profileString = args.slice(2).join(' ');
-                serverString = f.serverList(locationString);
+                serverString = leagueConstants.serverList(locationString);
             }
             
             locationString = (locationString == 'na') ? 'us' : locationString;
@@ -341,10 +327,14 @@ client.on('message', async message => {
             if(!locationString && !profileString) return textChannel.reply('You need to specify a location and a profile name to search.');
             if(!profileString) return textChannel.reply('You need to specify a profile name in the search.');
             
+            //searching the profile by the username inside the message
             f.searchLeagueProfile(serverString, profileString, (profileInfo) => {
                 console.log(profileInfo.id);
+                //getting ranks for all queues of the profile by the user id
                 f.getLeagueRank(serverString, profileInfo.id, (leagueInfo) => {
+                    //requesting all masteries but we only want the 3 firsts
                     f.allChampMasteries(serverString, profileInfo.id, (masteries) => {
+                        //all champs file
                         f.getChampionList(async (championList) => {
 
                             const icons = `http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/img/profileicon/${profileInfo.profileIconId}.png `;
@@ -439,7 +429,7 @@ client.on('message', async message => {
                             }
 
                             textChannel.send('', new RichEmbed()
-                            .setColor(colors.greenish)
+                            .setColor(f.color())
                             .setTitle(`Perfil: ${profileInfo.name} :flag_${locationString}:`)
                             .addField(fields[0].name, fields[0].value, true)
                             .addField(fields[1].name, fields[1].value, true)
@@ -463,7 +453,7 @@ client.on('message', async message => {
                 locationString = 'br';
             } else {
                 profileString = args.slice(2).join(' ');
-                serverString = f.serverList(locationString);
+                serverString = leagueConstants.serverList(locationString);
             }
 
             if(message.author.bot) return undefined;
@@ -480,7 +470,10 @@ client.on('message', async message => {
             f.summonerSpells((summonerSpells) => {
             //now that we have everything in our hands we can request the match from the profile id
             f.findMatch(serverString, profileInfo.id, async (matchData) => {
-                if (!matchData[0]) return textChannel.send('> Summoner is not in a match');
+                console.log(serverString);
+                console.log(profileInfo.id);
+                console.log(matchData);
+                if (!matchData) return textChannel.send('> Summoner is not in a match');
 
                 //just some functions mayb will change to the f object mayb maybe
                 //also need to change the scope of this function on lolprofile feelsbadman
@@ -546,10 +539,10 @@ client.on('message', async message => {
 
                 let teams = {
                     blue: await findBlueTeam(matchData.participants, 100),
-                    red: await findBlueTeam(matchData.participants, 100)
+                    red: await findRedTeam(matchData.participants, 200)
                 }
                 return textChannel.send('', new RichEmbed()
-                .setColor(colors.yellow)
+                .setColor(f.color())
                 .setTitle(`${leagueConstants.queues(matchData.gameQueueConfigId)} | ${leagueConstants.maps(matchData.mapId)} | N O  T I M E R`)
                 .addField('Blue Team', `
                 ${f.findEmoji(getKey(championList, teams.blue[1].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell2Id))} ${f.findEmoji(findPerkKey(teams.blue[1].perks.perkIds[0], findPerk(teams.blue[1].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[1].perks.perkSubStyle, runes)))}
