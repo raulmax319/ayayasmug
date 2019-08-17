@@ -537,8 +537,9 @@ client.on('message', async message => {
                     blue: await findBlueTeam(matchData.participants, 100),
                     red: await findRedTeam(matchData.participants, 200)
                 }
-                //just for testing pls dont kill me
-                return textChannel.send('', new RichEmbed()
+                //dont have the right emotes to show this up yet
+                return undefined;
+                /*return textChannel.send('', new RichEmbed()
                 .setColor(f.color())
                 .setTitle(`${leagueConstants.queues(matchData.gameQueueConfigId)} | ${leagueConstants.maps(matchData.mapId)} | N O  T I M E R`)
                 .addField('Blue Team', `
@@ -558,6 +559,9 @@ client.on('message', async message => {
             });
             });
             });
+            */
+        default:
+            textChannel.send('> Invalid command.');
         }
     });
 
