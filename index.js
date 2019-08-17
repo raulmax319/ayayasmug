@@ -7,9 +7,9 @@ let {
     riotAPIkey,
 } = require('./config.json');
 
-token = process.env.token;
-googleAPIkey = process.env.googleAPIkey;
-riotAPIkey = process.env.riotAPIkey;
+//token = process.env.token;
+//googleAPIkey = process.env.googleAPIkey;
+//riotAPIkey = process.env.riotAPIkey;
 
 const ytdl = require('ytdl-core');
 const Youtube = require('simple-youtube-api');
@@ -37,48 +37,48 @@ f.searchLeagueProfile = async (server, query, cb) => {
             let json = JSON.parse(body);
             cb(json);
         } catch (error) {
-            console.error(err);
+            cb(console.error(err));
         }
     });
 }
-f.getLeagueRank = async (server, id, cb) => {
-    await request(`https://${server}.api.riotgames.com/lol/league/v4/entries/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
+f.getLeagueRank = (server, id, cb) => {
+    request(`https://${server}.api.riotgames.com/lol/league/v4/entries/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json);
     });
 }
-f.getChampionList = async (cb) => {
-    await request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/champion.json`, (err, res, body) => {
+f.getChampionList = (cb) => {
+    request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/champion.json`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json.data);
     });
 }
-f.allChampMasteries = async (server, id, cb) => {
-    await request(`https://${server}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
+f.allChampMasteries = (server, id, cb) => {
+    request(`https://${server}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json);
     });
 }
-f.leagueRunes = async (cb) => {
-    await request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/runesReforged.json`, (err, res, body) => {
+f.leagueRunes = (cb) => {
+    request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/runesReforged.json`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json);
     });
 }
-f.summonerSpells = async (cb) => {
-    await request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/summoner.json`, (err, res, body) => {
+f.summonerSpells = (cb) => {
+    request(`http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/data/en_US/summoner.json`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json.data);
     });
 }
-f.findMatch = async (server, id, cb) => {
-    await request(`https://${server}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
+f.findMatch = (server, id, cb) => {
+    request(`https://${server}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${id}?api_key=${riotAPIkey}`, (err, res, body) => {
         let json = JSON.parse(body);
         cb(json);
     });
 }
-f.findEmoji = async (emote) => {
-    return await client.emojis.find(emoji => emoji.name === `${emote}`);
+f.findEmoji = (emote) => {
+    return client.emojis.find(emoji => emoji.name === `${emote}`);
 }
 //youtube player things
 f.play = (guild, song) => {
@@ -174,6 +174,7 @@ client.on('message', async message => {
             .setColor(f.color())
             .setDescription(':x: You need to connect to a voice channel first.')
             );
+            //checking if the bot has permissions to do stuff
             const permicoes = voiceChannel.permissionsFor(message.client.user);
             if(!permicoes.has('CONNECT')){
                 return textChannel.send('', embed
@@ -293,7 +294,7 @@ client.on('message', async message => {
             if(args[1] == 0) sound = ':mute:';
             if (args[1] > 0 && args[1] < 3) sound = ':speaker:';
             if(!args[1]) return textChannel.send('', embed
-            .setColor(cf.color())
+            .setColor(f.color())
             .setDescription(`Volume: **${serverQueue.volume}** ${sound}`)
             );
             serverQueue.volume = args[1];
@@ -303,12 +304,12 @@ client.on('message', async message => {
             .setDescription(`Volume now is: **${args[1]}** ${sound}`)
             );
 
-        case 'lolprofile': // testando apenas, feio demais
+        case 'lolprofile': // testando apenas
             //queue types
-            let solo = '';
-            let flex3x3 = '';
-            let flexSR = '';
-            let tft = '';
+            let solo = {};
+            let flex3x3 = {};
+            let flexSR = {};
+            let tft = {};
 
             if(locationString.length > 2) {
                 profileString = searchString;
@@ -329,13 +330,14 @@ client.on('message', async message => {
             
             //searching the profile by the username inside the message
             f.searchLeagueProfile(serverString, profileString, (profileInfo) => {
+                if (!profileInfo.id) return textChannel.send('> Couldn\'t find summoner. Maybe it\'s a new account...')
                 console.log(profileInfo.id);
                 //getting ranks for all queues of the profile by the user id
                 f.getLeagueRank(serverString, profileInfo.id, (leagueInfo) => {
                     //requesting all masteries but we only want the 3 firsts
                     f.allChampMasteries(serverString, profileInfo.id, (masteries) => {
                         //all champs file
-                        f.getChampionList(async (championList) => {
+                        f.getChampionList(async championList => {
 
                             const icons = `http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/img/profileicon/${profileInfo.profileIconId}.png `;
                             
@@ -356,14 +358,9 @@ client.on('message', async message => {
                                 }
                             }
 
-                            try {
-                                var champ1 = getKey(championList, masteries[0].championId);
-                                var champ2 = getKey(championList, masteries[1].championId);
-                                var champ3 = getKey(championList, masteries[2].championId);
-                            } catch (error) {
-                                console.log(error);
-                                return textChannel.send('> Couldn\'t find summoner name in the database.');
-                            }
+                                let champ1 = getKey(championList, masteries[0].championId);
+                                let champ2 = getKey(championList, masteries[1].championId);
+                                let champ3 = getKey(championList, masteries[2].championId);
 
                             let fields = [{
                                 name: 'Masteries',
@@ -469,14 +466,13 @@ client.on('message', async message => {
             //before requesting the match we need one last thing which is the summoner spells, this also is written by id in the match file so we need to find the name
             f.summonerSpells((summonerSpells) => {
             //now that we have everything in our hands we can request the match from the profile id
-            f.findMatch(serverString, profileInfo.id, async (matchData) => {
+            f.findMatch(serverString, profileInfo.id, async matchData => {
                 console.log(serverString);
                 console.log(profileInfo.id);
                 console.log(matchData);
-                if (!matchData) return textChannel.send('> Summoner is not in a match');
+                if (!matchData || matchData.status.message === 'Data not found') return textChannel.send('> Summoner is not in a match');
 
-                //just some functions mayb will change to the f object mayb maybe
-                //also need to change the scope of this function on lolprofile feelsbadman
+                //just some functions mayb i will change scope mayb maybe
                 const objToMap = (obj => {
                     const mapp = new Map();
                     Object.keys(obj).forEach(k => {
@@ -530,8 +526,8 @@ client.on('message', async message => {
                         if (runeId == perk.runes[i].id) return perk.runes[i].name;
                     }
                 }
-                perkName = (rune) => {
-                    return rune.name;
+                perkName = (rune) => { //nice func
+                    return rune.name; 
                 }
 
                 championList = await objToMap(championList);
@@ -541,6 +537,7 @@ client.on('message', async message => {
                     blue: await findBlueTeam(matchData.participants, 100),
                     red: await findRedTeam(matchData.participants, 200)
                 }
+                //just for testing pls dont kill me
                 return textChannel.send('', new RichEmbed()
                 .setColor(f.color())
                 .setTitle(`${leagueConstants.queues(matchData.gameQueueConfigId)} | ${leagueConstants.maps(matchData.mapId)} | N O  T I M E R`)
