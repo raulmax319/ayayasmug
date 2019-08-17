@@ -554,12 +554,13 @@ client.on('message', async message => {
                 ${f.findEmoji(getKey(championList, teams.red[3].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[3].perks.perkIds[0], findPerk(teams.red[3].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[3].perks.perkSubStyle, runes)))}
                 `)
                 );
+                */
             });
             });
             });
             });
             });
-            */
+
         default:
             textChannel.send('> Invalid command.');
         }
