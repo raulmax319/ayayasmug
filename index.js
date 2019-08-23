@@ -18,7 +18,7 @@ const request = require('request');
 const client = new Client();
 const youtube = new Youtube(googleAPIkey);
 const leagueConstants = require('./league/game_constants');
-const leaguePatch = '9.14.1';
+const leaguePatch = '9.15.1';
 let queue = new Map();
 let embed = new RichEmbed();
 
@@ -328,15 +328,11 @@ client.on('message', async message => {
             if(!locationString && !profileString) return textChannel.reply('You need to specify a location and a profile name to search.');
             if(!profileString) return textChannel.reply('You need to specify a profile name in the search.');
             
-            //searching the profile by the username inside the message
             f.searchLeagueProfile(serverString, profileString, (profileInfo) => {
                 if (!profileInfo.id) return textChannel.send('> Couldn\'t find summoner. Maybe it\'s a new account...')
                 console.log(profileInfo.id);
-                //getting ranks for all queues of the profile by the user id
                 f.getLeagueRank(serverString, profileInfo.id, (leagueInfo) => {
-                    //requesting all masteries but we only want the 3 firsts
                     f.allChampMasteries(serverString, profileInfo.id, (masteries) => {
-                        //all champs file
                         f.getChampionList(async championList => {
 
                             const icons = `http://ddragon.leagueoflegends.com/cdn/${leaguePatch}/img/profileicon/${profileInfo.profileIconId}.png `;
@@ -386,7 +382,6 @@ client.on('message', async message => {
                                 inline: false
                             }];
 
-                            //achei mais facil assim
                             leagueInfo = await objToMap(leagueInfo);
                             //console.log(leagueInfo);
 
@@ -444,7 +439,7 @@ client.on('message', async message => {
             });
             return undefined;
 
-        case 'lolmatch': //muito feio isso meu deus
+        case 'lolmatch': 
             if(locationString.length > 2) {
                 profileString = searchString;
                 locationString = 'br';
@@ -456,116 +451,105 @@ client.on('message', async message => {
             if(message.author.bot) return undefined;
             if(!locationString && !profileString) return textChannel.reply('You need to specify a location and a profile name to search.');
             if(!profileString) return textChannel.reply('You need to specify a profile name in the search.');
-
-            //first we need the account id so wee search the summoner by the profile name inside the message the same way we used on the lolprofile command
             f.searchLeagueProfile(serverString, profileString, (profileInfo) => {
-            //now we need the champion list again because all champions on the match.json file is by the id only
-            f.getChampionList((championList) => {
-            //we also need the runes file from the database so we are going to request it too
-            f.leagueRunes((runes) => {
-            //before requesting the match we need one last thing which is the summoner spells, this also is written by id in the match file so we need to find the name
-            f.summonerSpells((summonerSpells) => {
-            //now that we have everything in our hands we can request the match from the profile id
-            f.findMatch(serverString, profileInfo.id, async matchData => {
-                console.log(serverString);
-                console.log(profileInfo.id);
-                console.log(matchData);
-                if (!matchData || matchData.status.message === 'Data not found') return textChannel.send('> Summoner is not in a match');
+                f.getChampionList((championList) => {
+                    f.leagueRunes((runes) => {
+                        f.summonerSpells((summonerSpells) => {
+                            f.findMatch(serverString, profileInfo.id, async matchData => {
+                                console.log(serverString);
+                                console.log(profileInfo.id);
+                                console.log(matchData);
+                                if (!matchData.gameId) return textChannel.send('> Summoner is not in a match');
 
-                //just some functions mayb i will change scope mayb maybe
-                const objToMap = (obj => {
-                    const mapp = new Map();
-                    Object.keys(obj).forEach(k => {
-                        mapp.set(k, obj[k])
-                    })
-                    return mapp;
+                                    //just some functions mayb i will change it later mayb maybe
+                                    const objToMap = (obj => {
+                                        const mapp = new Map();
+                                        Object.keys(obj).forEach(k => {
+                                            mapp.set(k, obj[k])
+                                        })
+                                        return mapp;
+                                    });
+                                    getKey = (map, searchString) => {
+                                        for(const [key, value] of map.entries()) {
+                                            if(value.key == searchString) return key;
+                                        }
+                                    }
+                                    getSpellName = (map, searchString) => {
+                                        for(const [key, value] of map.entries()) {
+                                            if(value.key == searchString) return value.name;
+                                        }
+                                    }
+                                    findBlueTeam = (participants, teamId) => {
+                                        let team = [];
+                                        for (let i = 0; i < participants.length; i++) {
+                                            if (participants[i].teamId == teamId) {
+                                                team[i] = participants[i];
+                                            }
+                                        }
+                                        return team;
+                                    }
+                                    findRedTeam = (participants, teamId) => {
+                                        let team = [];
+                                        for (let i = 0; i < participants.length; i++) {
+                                            if (participants[i].teamId == teamId) {
+                                                team[i] = participants[i];
+                                            }
+                                        }
+                                        for (i = 0; i < participants.length - 1; i++) {
+                                            if (team[i] == undefined) team.shift();
+                                        }
+                                        return team;
+                                    }
+                                    findPerk = (perkId, runes) => {
+                                        for (let i = 0; i < runes.length; i++) {
+                                            if (runes[i].id == perkId) return runes[i].slots[0];
+                                        }
+                                    }
+                                    findSubPerk = (perkId, runes) => {
+                                        for (let i = 0; i < runes.length; i++) {
+                                            if (runes[i].id == perkId) return runes[i];
+                                        }
+                                    }
+                                    findPerkKey = (runeId, perk) => {
+                                        for (let i = 0; i < perk.runes.length; i++) {
+                                            if (runeId == perk.runes[i].id) return perk.runes[i].name;
+                                        }
+                                    }
+                                    perkName = (rune) => { //nice func
+                                        return rune.name; 
+                                    }
+
+                                    championList = await objToMap(championList);
+                                    summonerSpells = await objToMap(summonerSpells);
+
+                                    let teams = {
+                                        blue: await findBlueTeam(matchData.participants, 100),
+                                        red: await findRedTeam(matchData.participants, 200)
+                                    }
+                                    //dont have the right emotes to show this up just yet
+                                    return undefined;
+                                    /*return textChannel.send('', new RichEmbed()
+                                    .setColor(f.color())
+                                    .setTitle(`${leagueConstants.queues(matchData.gameQueueConfigId)} | ${leagueConstants.maps(matchData.mapId)} | N O  T I M E R`)
+                                    .addField('Blue Team', `
+                                    ${f.findEmoji(getKey(championList, teams.blue[1].championId))} ${f.findEmoji(getKey(championList, teams.blue[2].championId))} ${f.findEmoji(getKey(championList, teams.blue[0].championId))} ${f.findEmoji(getKey(championList, teams.blue[3].championId))} ${f.findEmoji(getKey(championList, teams.blue[4].championId))}
+                                    ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[2].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[2].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[0].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[0].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[3].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[3].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[4].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[4].spell2Id))}
+                                    ${f.findEmoji(findPerkKey(teams.blue[1].perks.perkIds[0], findPerk(teams.blue[1].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[1].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[2].perks.perkIds[0], findPerk(teams.blue[2].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[2].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[4].perks.perkIds[0], findPerk(teams.blue[4].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[4].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[0].perks.perkIds[0], findPerk(teams.blue[0].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[0].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[3].perks.perkIds[0], findPerk(teams.blue[3].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[3].perks.perkSubStyle, runes)))}`, false)
+                                    .addField('Red Team', `
+                                    ${f.findEmoji(getKey(championList, teams.red[4].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[4].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[4].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[4].perks.perkIds[0], findPerk(teams.red[4].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[4].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.red[1].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[1].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[1].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[1].perks.perkIds[0], findPerk(teams.red[1].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[1].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.red[0].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[0].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[0].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[0].perks.perkIds[0], findPerk(teams.red[0].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[0].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.red[2].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[2].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[2].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[2].perks.perkIds[0], findPerk(teams.red[2].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[2].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.red[3].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[3].perks.perkIds[0], findPerk(teams.red[3].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[3].perks.perkSubStyle, runes)))}
+                                    `)
+                                    );*/
+                            });
+                        });
+                    });
                 });
-                getKey = (map, searchString) => {
-                    for(const [key, value] of map.entries()) {
-                        if(value.key == searchString) return key;
-                    }
-                }
-                getSpellName = (map, searchString) => {
-                    for(const [key, value] of map.entries()) {
-                        if(value.key == searchString) return value.name;
-                    }
-                }
-                findBlueTeam = (participants, teamId) => {
-                    let team = [];
-                    for (let i = 0; i < participants.length; i++) {
-                        if (participants[i].teamId == teamId) {
-                            team[i] = participants[i];
-                        }
-                    }
-                    return team;
-                }
-                findRedTeam = (participants, teamId) => {
-                    let team = [];
-                    for (let i = 0; i < participants.length; i++) {
-                        if (participants[i].teamId == teamId) {
-                            team[i] = participants[i];
-                        }
-                    }
-                    for (i = 0; i < participants.length - 1; i++) {
-                        if (team[i] == undefined) team.shift();
-                    }
-                    return team;
-                }
-                findPerk = (perkId, runes) => {
-                    for (let i = 0; i < runes.length; i++) {
-                        if (runes[i].id == perkId) return runes[i].slots[0];
-                    }
-                }
-                findSubPerk = (perkId, runes) => {
-                    for (let i = 0; i < runes.length; i++) {
-                        if (runes[i].id == perkId) return runes[i];
-                    }
-                }
-                findPerkKey = (runeId, perk) => {
-                    for (let i = 0; i < perk.runes.length; i++) {
-                        if (runeId == perk.runes[i].id) return perk.runes[i].name;
-                    }
-                }
-                perkName = (rune) => { //nice func
-                    return rune.name; 
-                }
-
-                championList = await objToMap(championList);
-                summonerSpells = await objToMap(summonerSpells);
-
-                let teams = {
-                    blue: await findBlueTeam(matchData.participants, 100),
-                    red: await findRedTeam(matchData.participants, 200)
-                }
-                //dont have the right emotes to show this up yet
-                return undefined;
-                /*return textChannel.send('', new RichEmbed()
-                .setColor(f.color())
-                .setTitle(`${leagueConstants.queues(matchData.gameQueueConfigId)} | ${leagueConstants.maps(matchData.mapId)} | N O  T I M E R`)
-                .addField('Blue Team', `
-                ${f.findEmoji(getKey(championList, teams.blue[1].championId))} ${f.findEmoji(getKey(championList, teams.blue[2].championId))} ${f.findEmoji(getKey(championList, teams.blue[0].championId))} ${f.findEmoji(getKey(championList, teams.blue[3].championId))} ${f.findEmoji(getKey(championList, teams.blue[4].championId))}
-                ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[2].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[2].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[0].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[0].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[3].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[3].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[4].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[4].spell2Id))}
-                ${f.findEmoji(findPerkKey(teams.blue[1].perks.perkIds[0], findPerk(teams.blue[1].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[1].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[2].perks.perkIds[0], findPerk(teams.blue[2].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[2].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[4].perks.perkIds[0], findPerk(teams.blue[4].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[4].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[0].perks.perkIds[0], findPerk(teams.blue[0].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[0].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[3].perks.perkIds[0], findPerk(teams.blue[3].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[3].perks.perkSubStyle, runes)))}`, false)
-                .addField('Red Team', `
-                ${f.findEmoji(getKey(championList, teams.red[4].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[4].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[4].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[4].perks.perkIds[0], findPerk(teams.red[4].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[4].perks.perkSubStyle, runes)))}
-                ${f.findEmoji(getKey(championList, teams.red[1].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[1].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[1].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[1].perks.perkIds[0], findPerk(teams.red[1].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[1].perks.perkSubStyle, runes)))}
-                ${f.findEmoji(getKey(championList, teams.red[0].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[0].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[0].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[0].perks.perkIds[0], findPerk(teams.red[0].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[0].perks.perkSubStyle, runes)))}
-                ${f.findEmoji(getKey(championList, teams.red[2].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[2].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[2].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[2].perks.perkIds[0], findPerk(teams.red[2].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[2].perks.perkSubStyle, runes)))}
-                ${f.findEmoji(getKey(championList, teams.red[3].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[3].perks.perkIds[0], findPerk(teams.red[3].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[3].perks.perkSubStyle, runes)))}
-                `)
-                );
-                */
             });
-            });
-            });
-            });
-            });
-
-        default:
-            textChannel.send('> Invalid command.');
         }
     });
-
-
+    
 client.login(token);
 
