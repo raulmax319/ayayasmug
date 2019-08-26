@@ -250,8 +250,7 @@ client.on('message', async message => {
             );
 
         case 'pepega':
-            message.reply(`I\'m not ${f.findEmoji('Pepega')} :point_down: he is`);
-            return undefined;
+            return message.reply(`I\'m not ${f.findEmoji('Pepega')} :point_down: he is`);
 
         case 'stop':
             if(!message.member.voiceChannel) return textChannel.send('', embed
@@ -282,7 +281,7 @@ client.on('message', async message => {
             .setColor(f.color())
             .setDescription(`${f.findEmoji('jervisAYAYA')} Playing now: **${serverQueue.songs[0].title}** :headphones:`)
             );
-
+        case 'volume':
         case 'vol':
             let sound = ':sound:';
             if(!message.member.voiceChannel) return textChannel.send('', embed
