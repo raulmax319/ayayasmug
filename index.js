@@ -281,6 +281,7 @@ client.on('message', async message => {
             .setColor(f.color())
             .setDescription(`${f.findEmoji('jervisAYAYA')} Playing now: **${serverQueue.songs[0].title}** :headphones:`)
             );
+        
         case 'volume':
         case 'vol':
             let sound = ':sound:';
@@ -349,13 +350,13 @@ client.on('message', async message => {
                             
                             getKey = (map, searchString) => {
                                 for(const [key, value] of map.entries()) {
-                                    if(value.key == searchString) return key;
+                                    if(value.key == searchString) return value.name;
                                 }
                             }
 
-                                let champ1 = getKey(championList, masteries[0].championId);
-                                let champ2 = getKey(championList, masteries[1].championId);
-                                let champ3 = getKey(championList, masteries[2].championId);
+                                let champ1 = getKey(championList, masteries[0].championId).split('\'').join('');
+                                let champ2 = getKey(championList, masteries[1].championId).split('\'').join('');
+                                let champ3 = getKey(championList, masteries[2].championId).split('\'').join('');
 
                             let fields = [{
                                 name: 'Masteries',
@@ -427,8 +428,8 @@ client.on('message', async message => {
                             .setThumbnail(icons)
                             .addField(fields[2].name, `
                             **Solo/duo:** ${fields[2].value.solo}
-                            **Flex:** ${fields[2].value.flexSR}
                             **Ranked 3x3:** ${fields[2].value.flex3x3}
+                            **Flex:** ${fields[2].value.flexSR}
                             **TFT:** ${fields[2].value.tft}
                             `, false)
                             );
@@ -470,7 +471,7 @@ client.on('message', async message => {
                                     });
                                     getKey = (map, searchString) => {
                                         for(const [key, value] of map.entries()) {
-                                            if(value.key == searchString) return key;
+                                            if(value.key == searchString) return value.name;
                                         }
                                     }
                                     getSpellName = (map, searchString) => {
@@ -511,11 +512,11 @@ client.on('message', async message => {
                                     }
                                     findPerkKey = (runeId, perk) => {
                                         for (let i = 0; i < perk.runes.length; i++) {
-                                            if (runeId == perk.runes[i].id) return perk.runes[i].name;
+                                            if (runeId == perk.runes[i].id) return perk.runes[i].key; // recent changed from name emote purpose
                                         }
                                     }
                                     perkName = (rune) => { //nice func
-                                        return rune.name; 
+                                        return rune.key; 
                                     }
 
                                     championList = await objToMap(championList);
@@ -525,23 +526,24 @@ client.on('message', async message => {
                                         blue: await findBlueTeam(matchData.participants, 100),
                                         red: await findRedTeam(matchData.participants, 200)
                                     }
-                                    //dont have the right emotes to show this up just yet
-                                    return undefined;
-                                    /*return textChannel.send('', new RichEmbed()
+                                    return textChannel.send('', new RichEmbed()
                                     .setColor(f.color())
                                     .setTitle(`${leagueConstants.queues(matchData.gameQueueConfigId)} | ${leagueConstants.maps(matchData.mapId)} | N O  T I M E R`)
                                     .addField('Blue Team', `
-                                    ${f.findEmoji(getKey(championList, teams.blue[1].championId))} ${f.findEmoji(getKey(championList, teams.blue[2].championId))} ${f.findEmoji(getKey(championList, teams.blue[0].championId))} ${f.findEmoji(getKey(championList, teams.blue[3].championId))} ${f.findEmoji(getKey(championList, teams.blue[4].championId))}
-                                    ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[2].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[2].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[0].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[0].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[3].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[3].spell2Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[4].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[4].spell2Id))}
-                                    ${f.findEmoji(findPerkKey(teams.blue[1].perks.perkIds[0], findPerk(teams.blue[1].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[1].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[2].perks.perkIds[0], findPerk(teams.blue[2].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[2].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[4].perks.perkIds[0], findPerk(teams.blue[4].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[4].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[0].perks.perkIds[0], findPerk(teams.blue[0].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[0].perks.perkSubStyle, runes)))} ${f.findEmoji(findPerkKey(teams.blue[3].perks.perkIds[0], findPerk(teams.blue[3].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[3].perks.perkSubStyle, runes)))}`, false)
+                                    ${f.findEmoji(getKey(championList, teams.blue[4].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[4].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[4].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.blue[4].perks.perkIds[0], findPerk(teams.blue[4].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[4].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.blue[1].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[1].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.blue[1].perks.perkIds[0], findPerk(teams.blue[1].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[1].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.blue[0].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[0].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[0].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.blue[0].perks.perkIds[0], findPerk(teams.blue[0].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[0].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.blue[2].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[2].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[2].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.blue[2].perks.perkIds[0], findPerk(teams.blue[2].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[2].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.blue[3].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[3].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.blue[3].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.blue[3].perks.perkIds[0], findPerk(teams.blue[3].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.blue[3].perks.perkSubStyle, runes)))}
+                                    `, false)
                                     .addField('Red Team', `
-                                    ${f.findEmoji(getKey(championList, teams.red[4].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[4].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[4].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[4].perks.perkIds[0], findPerk(teams.red[4].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[4].perks.perkSubStyle, runes)))}
-                                    ${f.findEmoji(getKey(championList, teams.red[1].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[1].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[1].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[1].perks.perkIds[0], findPerk(teams.red[1].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[1].perks.perkSubStyle, runes)))}
-                                    ${f.findEmoji(getKey(championList, teams.red[0].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[0].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[0].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[0].perks.perkIds[0], findPerk(teams.red[0].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[0].perks.perkSubStyle, runes)))}
-                                    ${f.findEmoji(getKey(championList, teams.red[2].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[2].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[2].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[2].perks.perkIds[0], findPerk(teams.red[2].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[2].perks.perkSubStyle, runes)))}
-                                    ${f.findEmoji(getKey(championList, teams.red[3].championId))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell1Id))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell2Id))} ${f.findEmoji(findPerkKey(teams.red[3].perks.perkIds[0], findPerk(teams.red[3].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[3].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.red[4].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[4].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[4].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.red[4].perks.perkIds[0], findPerk(teams.red[4].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[4].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.red[1].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[1].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[1].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.red[1].perks.perkIds[0], findPerk(teams.red[1].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[1].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.red[0].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[0].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[0].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.red[0].perks.perkIds[0], findPerk(teams.red[0].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[0].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.red[2].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[2].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[2].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.red[2].perks.perkIds[0], findPerk(teams.red[2].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[2].perks.perkSubStyle, runes)))}
+                                    ${f.findEmoji(getKey(championList, teams.red[3].championId).split('\'').join('').split(' ').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell1Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(getSpellName(summonerSpells, teams.red[3].spell2Id).split(' ').join('').split('!').join(''))} ${f.findEmoji(findPerkKey(teams.red[3].perks.perkIds[0], findPerk(teams.red[3].perks.perkStyle, runes)))} ${f.findEmoji(perkName(findSubPerk(teams.red[3].perks.perkSubStyle, runes)))}
                                     `)
-                                    );*/
+                                    );
                             });
                         });
                     });
@@ -549,6 +551,5 @@ client.on('message', async message => {
             });
         }
     });
-    
 client.login(token);
 
