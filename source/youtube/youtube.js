@@ -5,8 +5,7 @@ const queue = require('./queue');
 const f = require('../functions');
 const embed = new RichEmbed();
 
-module.exports = {
-    play: (guild, song) => {
+function play(guild, song) {
         const serverQueue = queue.get(guild.id);
     
         if(!song){
@@ -28,7 +27,9 @@ module.exports = {
         .setColor(f.color())
         .setDescription(`:white_check_mark: pepeJAM Playing now: **${song.title}** pepeJAMMER`)
         );
-    },
+}
+
+module.exports = {
     addToQueue: async function (video, message, voiceChannel, playlist = false) {
         const serverQueue = queue.get(message.guild.id);
         const song = {
@@ -52,7 +53,7 @@ module.exports = {
             try {
                 var connection = await voiceChannel.join();
                 newQueue.connection = connection;
-                this.play(message.guild, newQueue.songs[0]);
+                play(message.guild, newQueue.songs[0]);
             } catch (error) {
                 console.error(`Could not connect to the vChannel ${error}`);
                 queue.delete(message.guild.id);
