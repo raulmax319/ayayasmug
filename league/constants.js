@@ -82,5 +82,8 @@ module.exports = {
             'jp': 'jp1',
             'kr': 'kr'
         } [term];
+    },
+    version: () => {
+        return '9.23.1';
     }
 }
