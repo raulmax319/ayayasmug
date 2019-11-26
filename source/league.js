@@ -4,35 +4,47 @@ const keys = require('./keys');
 const constants = require('../league/constants');
 const functions = require('./functions');
 
+async function profileByName(server, query) {
+    const res = await axios.get(`https://${server}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(query)}?api_key=${keys.riotAPIkey}`);
+    return res.data;
+}
+async function leaguesByID(server, id) {
+    const res = await axios.get(`https://${server}.api.riotgames.com/lol/league/v4/entries/by-summoner/${id}?api_key=${keys.riotAPIkey}`);
+    return res.data;
+}
+async function masteries(server, id) {
+    const res = await axios.get(`https://${server}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}?api_key=${keys.riotAPIkey}`);
+    return res.data;
+}
+async function championList() {
+    const res = await axios.get(`http://ddragon.leagueoflegends.com/cdn/${constants.version()}/data/en_US/champion.json`);
+    return res.data.data;
+}
+async function runes() {
+    const res = await axios.get(`http://ddragon.leagueoflegends.com/cdn/${constants.version()}/data/en_US/runesReforged.json`);
+    return res.data;
+}
+async function spells() {
+    const res = await axios.get(`http://ddragon.leagueoflegends.com/cdn/${constants.version()}/data/en_US/summoner.json`);
+    return res.data;
+}
+async function findMatch(server, id) {
+    const res = await axios.get(`https://${server}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${id}?api_key=${keys.riotAPIkey}`);
+    return res.data;
+}
+function championById(masteryKey, championObj) {
+    for(const key in championObj) {
+        const newObj = championObj[key];
+        for(const key2 in newObj) {
+            if(newObj.key === masteryKey) {
+                return newObj.name;
+                
+            }
+        }
+    }
+}
+
 module.exports = {
-    profileByName: async (server, query) => {
-        const res = await axios.get(`https://${server}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(query)}?api_key=${keys.riotAPIkey}`);
-        return res.data;
-    },
-    leaguesByID: async (server, id) => {
-        const res = await axios.get(`https://${server}.api.riotgames.com/lol/league/v4/entries/by-summoner/${id}?api_key=${keys.riotAPIkey}`);
-        return res.data;
-    },
-    masteries: async (server, id) => {
-        const res = await axios.get(`https://${server}.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/${id}?api_key=${keys.riotAPIkey}`);
-        return res.data;
-    },
-    championList: async () => {
-        const res = await axios.get(`http://ddragon.leagueoflegends.com/cdn/${constants.version()}/data/en_US/champion.json`);
-        return res.data;
-    },
-    runes: async () => {
-        const res = await axios.get(`http://ddragon.leagueoflegends.com/cdn/${constants.version()}/data/en_US/runesReforged.json`);
-        return res.data;
-    },
-    spells: async () => {
-        const res = await axios.get(`http://ddragon.leagueoflegends.com/cdn/${constants.version()}/data/en_US/summoner.json`);
-        return res.data;
-    },
-    match: async (server, id) => {
-        const res = await axios.get(`https://${server}.api.riotgames.com/lol/spectator/v4/active-games/by-summoner/${id}?api_key=${keys.riotAPIkey}`);
-        return res.data;
-    },
     showProfile: async (args, location, member, textChannel) => {
         const channel = {
             member: member,
@@ -60,30 +72,16 @@ module.exports = {
         if(!profileName) return channel.textChannel.reply('You need to specify a profile name in the search.');
         
         try {
-            console.log(this);
-            var profile = await this.profileByName(server, profileName);
-            var ranks = await this.leaguesByID(server, profile.id);
-            var mastery = await this.masteries(server, profile.id);
-            var champions = await this.championList().data;
+            var profile = await profileByName(server, profileName);
+            var ranks = await leaguesByID(server, profile.id);
+            var mastery = await masteries(server, profile.id);
+            var champions = await championList();
 
             const icons = `http://ddragon.leagueoflegends.com/cdn/${constants.version()}/img/profileicon/${profile.profileIconId}.png `;
 
-            function handleMasteries(masteryKey, championObj) {
-                var championName;
-                for(const key in championObj) {
-                    const newObj = championObj[key];
-                    for(const key2 in newObj) {
-                        if(newObj.key === masteryKey) {
-                            championName = newObj.name;
-                        }
-                    }
-                }
-                return championName;
-            }
-
-            let mastery1 = handleMasteries(mastery[0].championId, champions);
-            let mastery2 = handleMasteries(mastery[1].championId, champions);
-            let mastery3 = handleMasteries(mastery[2].championId, champions);
+            let mastery1 = await championById(mastery[0].championId.toString(), champions);
+            let mastery2 = await championById(mastery[1].championId.toString(), champions);
+            let mastery3 = await championById(mastery[2].championId.toString(), champions);
 
             mastery1 = mastery1.match(/[^A-Za-z]/) ? mastery1.replace(/[^A-Za-z0-9]/g, '') : '';
             mastery2 = mastery2.match(/[^A-Za-z]/) ? mastery2.replace(/[^A-Za-z0-9]/g, '') : '';
@@ -120,8 +118,8 @@ module.exports = {
 
             function getLeague(objArr, queueType) {
                 for(let i = 0; i < objArr.length; i++) {
-                    for(const key in obj[i]) {
-                        if(obj.queueType === queueType) return obj;
+                    for(const key in objArr[i]) {
+                        if(objArr.queueType === queueType) return objArr;
                     }
                 }
             }
@@ -157,7 +155,7 @@ module.exports = {
 
             channel.textChannel.send('', new RichEmbed()
             .setColor(functions.color())
-            .setTitle(`Perfil: ${profileInfo.name} :flag_${locationString}:`)
+            .setTitle(`Perfil: ${profile.name} :flag_${location}:`)
             .addField(fields[0].name, fields[0].value, true)
             .addField(fields[1].name, fields[1].value, true)
             .setThumbnail(icons)
@@ -171,7 +169,6 @@ module.exports = {
 
         } catch(error) {
             console.error(error);
-            return channel.textChannel.reply(`User not found ${error}`);
         }
         
         return undefined;

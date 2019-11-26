@@ -5,8 +5,8 @@ let keys =  {
     riotAPIkey,
 } = require('../config.json');
 
-//keys.token = process.env.token;
-//keys.googleAPIkey = process.env.googleAPIkey;
-//keys.riotAPIkey = process.env.riotAPIkey;
+keys.token = process.env.token;
+keys.googleAPIkey = process.env.googleAPIkey;
+keys.riotAPIkey = process.env.riotAPIkey;
 
 module.exports = keys;

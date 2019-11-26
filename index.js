@@ -28,7 +28,6 @@ client.on('message', async message => {
     const mess = message.content.toLowerCase();
     const comando = mess.split(' ')[0].replace(prefix, '');
     const args = message.content.split(' ');
-    console.log(args);
     const args2 = args.slice(1).join(' ');
     //const serverQueue = queue.get(message.guild.id);
     let location = args.slice(1, 2).join(' '); // na if na
@@ -180,7 +179,6 @@ client.on('message', async message => {
 */
         case 'lolprofile':
             if(message.author.bot) return undefined;
-            console.log(typeof(league));
             try {
                 league.showProfile(args2, location, member, textChannel);
             } catch(err) {
