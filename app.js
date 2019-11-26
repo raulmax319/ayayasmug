@@ -3,11 +3,11 @@ const keys = require('./source/keys');
 const league = require('./source/league');
 const yt = require('./source/youtube/youtube');
 const f = require('./source/functions');
+const queue = require('./source/youtube/queue');
 
 const { Client, Util, RichEmbed } = require('discord.js');
 const Youtube = require('simple-youtube-api');
 const youtube = new Youtube(keys.googleAPIkey);
-//const ytdl = require('ytdl-core');
 
 const client = new Client();
 let embed = new RichEmbed();
@@ -22,11 +22,11 @@ client.on('reconnecting', () => console.log('Reconnecting...'));
 
 client.on('message', async message => {
     const member = message.member;
-    const textChannel = message.channel
+    const textChannel = message.channel;
     const comando = message.content.split(' ')[0].replace(prefix, '').toLowerCase();
     const args = message.content.split(' ');
     const args2 = args.slice(1).join(' ');
-    //const serverQueue = queue.get(message.guild.id);
+    const serverQueue = queue.get(message.guild.id);
 
     if(!args[0].startsWith(prefix)) return undefined;
     switch(comando) {
@@ -56,11 +56,12 @@ client.on('message', async message => {
             if(url.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/)){
                 const playlist = await youtube.getPlaylist(url);
                 const videos = await playlist.getVideos();
+                
                 for (const video of Object.values(videos)) {
                     const video_ = await youtube.getVideoByID(video.id);
-                    console.log(`${video.title} was added to the queue.`);
                     await yt.addToQueue(video_, message, voiceChannel, true);
                 }
+                
                 return textChannel.send('', new RichEmbed()
                 .setThumbnail(playlist.thumbnails.default.url)
                 .setDescription(`:white_check_mark: Playlist: **${playlist.title}** has been added to the queue ${f.findEmoji('pepeOK')}`)
@@ -86,8 +87,10 @@ client.on('message', async message => {
             .setColor(f.color())
             .setDescription(':x: You need to connect to a voice channel first.')
             );
+            
             if(!serverQueue) return textChannel.send('The queue is empty');
             console.log(serverQueue.songs[0]);
+            
             textChannel.send('', new RichEmbed()
             .setColor(f.color())
             .setDescription('Song skipped :track_next:'));

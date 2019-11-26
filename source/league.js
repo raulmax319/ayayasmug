@@ -59,7 +59,7 @@ module.exports = {
             console.log(profileName);
             location = 'br';
         } else {
-            profileName = args[1];
+            profileName = args.split(' ').slice(1).join(' ');
             console.log(profileName);
             server = constants.serverList(location);
             console.log(server);
@@ -116,11 +116,10 @@ module.exports = {
             let flexSR = {};
             let tft = {};
 
+            //we're getting our rank data by the queue type here using this for loop to go through the array we got from the request
             function getLeague(objArr, queueType) {
                 for(let i = 0; i < objArr.length; i++) {
-                    for(const key in objArr[i]) {
-                        if(objArr.queueType === queueType) return objArr;
-                    }
+                    if(objArr[i].queueType === queueType) return objArr[i];
                 }
             }
 
