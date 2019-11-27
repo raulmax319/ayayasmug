@@ -76,7 +76,7 @@ client.on('message', async message => {
                     var video = await youtube.getVideo(url);
                 } catch (error) {
                     try {
-                        var videos = await youtube.searchVideos(searchString, 1);
+                        var videos = await youtube.searchVideos(args2, 1);
                         var video = await youtube.getVideoByID(videos[0].id);
                     } catch (err) {
                         console.error(err);

@@ -46,10 +46,6 @@ function championById(masteryKey, championObj) {
         }
     }
 }
-/*
-spellId will need to be converted to string since we are getting a number from the findMatch()
-and the spells.json gives the id as a string
-*/
 function findSpellById(obj, spellId) {
     for (const key in obj) {
         const newObj = obj[key];
@@ -102,8 +98,9 @@ function sortRunePerks(runes, perkId, keyStoneId, subPerkId) {
             }
         }
     }
-    //perks.keyStone = perks.keyStone.match(/[^A-Za-z]/) ? perks.keyStone.replace(/[^A-Za-z0-9]/g, '') : perks.keyStone;
-    //perks.subPerk = perks.subPerk.match(/[^A-Za-z]/) ? perks.subPerk.replace(/[^A-Za-z0-9]/g, '') : perks.subPerk;
+    perks.keyStone = perks.keyStone.match(/[^A-Za-z]/) ? perks.keyStone.replace(/[^A-Za-z0-9]/g, '') : perks.keyStone;
+    perks.subPerk = perks.subPerk.match(/[^A-Za-z]/) ? perks.subPerk.replace(/[^A-Za-z0-9]/g, '') : perks.subPerk;
+
 
     return perks;
 }
@@ -124,11 +121,12 @@ module.exports = {
             let profileName;
 
             if (location.length > 2) {
-                //if the person doesn't type the location after the command (the location will be 'br' by default and profileName will be the string contained inside location)
+                //if the person doesn't type the location after the command the location will be 'br' by default
                 profileName = args;
                 //console.log(profileName);
                 location = 'br';
             } else {
+                //if there is a location after the command we need to slice it so we get the profile name
                 profileName = args.split(' ').slice(1).join(' ');
                 //console.log(profileName);
                 server = constants.serverList(location);
@@ -296,28 +294,28 @@ module.exports = {
                         spell2: findSpellById(spells, teams.blue[1].spell2Id),
                         champion: championById(teams.blue[1].championId, champions),
                         name: teams.blue[1].summonerName,
-                        perks: sortRunePerks(runes, teams.blue[1].perks.perkStyle, teams.blue[1].perks.perkIds[1], teams.blue[1].perks.perkSubStyle)
+                        perks: sortRunePerks(runes, teams.blue[1].perks.perkStyle, teams.blue[1].perks.perkIds[0], teams.blue[1].perks.perkSubStyle)
                     },
                     {
                         spell1: findSpellById(spells, teams.blue[2].spell1Id),
                         spell2: findSpellById(spells, teams.blue[2].spell2Id),
                         champion: championById(teams.blue[2].championId, champions),
                         name: teams.blue[2].summonerName,
-                        perks: sortRunePerks(runes, teams.blue[2].perks.perkStyle, teams.blue[2].perks.perkIds[2], teams.blue[2].perks.perkSubStyle)
+                        perks: sortRunePerks(runes, teams.blue[2].perks.perkStyle, teams.blue[2].perks.perkIds[0], teams.blue[2].perks.perkSubStyle)
                     },
                     {
                         spell1: findSpellById(spells, teams.blue[3].spell1Id),
                         spell2: findSpellById(spells, teams.blue[3].spell2Id),
                         champion: championById(teams.blue[3].championId, champions),
                         name: teams.blue[3].summonerName,
-                        perks: sortRunePerks(runes, teams.blue[3].perks.perkStyle, teams.blue[3].perks.perkIds[3], teams.blue[3].perks.perkSubStyle)
+                        perks: sortRunePerks(runes, teams.blue[3].perks.perkStyle, teams.blue[3].perks.perkIds[0], teams.blue[3].perks.perkSubStyle)
                     },
                     {
                         spell1: findSpellById(spells, teams.blue[4].spell1Id),
                         spell2: findSpellById(spells, teams.blue[4].spell2Id),
                         champion: championById(teams.blue[4].championId, champions),
                         name: teams.blue[4].summonerName,
-                        perks: sortRunePerks(runes, teams.blue[4].perks.perkStyle, teams.blue[4].perks.perkIds[4], teams.blue[4].perks.perkSubStyle)
+                        perks: sortRunePerks(runes, teams.blue[4].perks.perkStyle, teams.blue[4].perks.perkIds[0], teams.blue[4].perks.perkSubStyle)
                     }],
                     red: [{
                         spell1: findSpellById(spells, teams.red[0].spell1Id),
@@ -331,33 +329,33 @@ module.exports = {
                         spell2: findSpellById(spells, teams.red[1].spell2Id),
                         champion: championById(teams.red[1].championId, champions),
                         name: teams.red[1].summonerName,
-                        perks: sortRunePerks(runes, teams.red[1].perks.perkStyle, teams.red[1].perks.perkIds[1], teams.red[1].perks.perkSubStyle)
+                        perks: sortRunePerks(runes, teams.red[1].perks.perkStyle, teams.red[1].perks.perkIds[0], teams.red[1].perks.perkSubStyle)
                     },
                     {
                         spell1: findSpellById(spells, teams.red[2].spell1Id),
                         spell2: findSpellById(spells, teams.red[2].spell2Id),
                         champion: championById(teams.red[2].championId, champions),
                         name: teams.red[2].summonerName,
-                        perks: sortRunePerks(runes, teams.red[2].perks.perkStyle, teams.red[2].perks.perkIds[2], teams.red[2].perks.perkSubStyle)
+                        perks: sortRunePerks(runes, teams.red[2].perks.perkStyle, teams.red[2].perks.perkIds[0], teams.red[2].perks.perkSubStyle)
                     },
                     {
                         spell1: findSpellById(spells, teams.red[3].spell1Id),
                         spell2: findSpellById(spells, teams.red[3].spell2Id),
                         champion: championById(teams.red[3].championId, champions),
                         name: teams.red[3].summonerName,
-                        perks: sortRunePerks(runes, teams.red[3].perks.perkStyle, teams.red[3].perks.perkIds[3], teams.red[3].perks.perkSubStyle)
+                        perks: sortRunePerks(runes, teams.red[3].perks.perkStyle, teams.red[3].perks.perkIds[0], teams.red[3].perks.perkSubStyle)
                     },
                     {
                         spell1: findSpellById(spells, teams.red[4].spell1Id),
                         spell2: findSpellById(spells, teams.red[4].spell2Id),
                         champion: championById(teams.red[4].championId, champions),
                         name: teams.red[4].summonerName,
-                        perks: sortRunePerks(runes, teams.red[4].perks.perkStyle, teams.red[4].perks.perkIds[4], teams.red[4].perks.perkSubStyle)
+                        perks: sortRunePerks(runes, teams.red[4].perks.perkStyle, teams.red[4].perks.perkIds[0], teams.red[4].perks.perkSubStyle)
                     }]
                 }
             }
 //ugly but i needed this because of character limitations on the message
-            channel.textChannel.send('', new RichEmbed()
+            return channel.textChannel.send('', new RichEmbed()
             .setColor(functions.color())
             .setTitle(`${constants.queues(game.gameQueueConfigId)} | ${constants.maps(game.mapId)} | T I M E R`)
             .addField('Blue Team',
