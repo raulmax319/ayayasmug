@@ -1,6 +1,6 @@
 const { Client, Util, RichEmbed } = require('discord.js');
 
-const client = new Client();
+//const client = new Client();
 
 module.exports = {
     color: () => {
@@ -9,7 +9,7 @@ module.exports = {
         }).join('')}`;
         return hex;
     },
-    findEmoji: (emote) => {
-        return client.emojis.find(emoji => emoji.name === `${emote}`);
-    }
+//    findEmoji: (emote) => {
+//        return client.emojis.find(emoji => emoji.name === `${emote}`);
+//    }
 }

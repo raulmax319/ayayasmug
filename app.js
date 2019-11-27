@@ -5,6 +5,10 @@ const yt = require('./source/youtube/youtube');
 const f = require('./source/functions');
 const queue = require('./source/youtube/queue');
 
+f.findEmoji = (emote) => {
+    return client.emojis.find(emoji => emoji.name === `${emote}`);
+}
+
 const { Client, Util, RichEmbed } = require('discord.js');
 const Youtube = require('simple-youtube-api');
 const youtube = new Youtube(keys.googleAPIkey);
@@ -27,6 +31,7 @@ client.on('message', async message => {
     const args = message.content.split(' ');
     const args2 = args.slice(1).join(' ');
     const serverQueue = queue.get(message.guild.id);
+    const location = args.slice(1, 2).join(' ');
 
     if(!args[0].startsWith(prefix)) return undefined;
     switch(comando) {
@@ -176,8 +181,6 @@ client.on('message', async message => {
         case 'lolprofile':
             if(message.author.bot) return undefined;
 
-            let location = args.slice(1, 2).join(' ');
-
             try {
                 league.showProfile(args2, location, member, textChannel);
             } catch(err) {
@@ -186,7 +189,14 @@ client.on('message', async message => {
             return undefined;
 
         case 'lolmatch': 
-            //nothing here for now
+            if(message.author.bot) return undefined;
+
+            try {
+                league.getMatch(args2, location, member, textChannel);
+            } catch(err) {
+                console.error(err);
+            }
+            return undefined;
         }
     });
 client.login(keys.token);
