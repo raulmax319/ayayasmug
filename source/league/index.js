@@ -37,14 +37,17 @@ async function findMatch(server, id) {
     return res.data;
 }
 function championById(masteryKey, championObj) {
+    let name = '';
     for (const key in championObj) {
         const newObj = championObj[key];
         for (const key2 in newObj) {
             if (newObj.key == masteryKey) {
-                return newObj.name;
+                name = newObj.name;
             }
         }
     }
+    name = name.match(/[^A-Za-z]/) ? name.replace(/[^A-Za-z0-9]/g, '') : name;
+    return name;
 }
 function findSpellById(obj, spellId) {
     for (const key in obj) {
@@ -147,13 +150,9 @@ module.exports = {
 
                 const icons = `http://ddragon.leagueoflegends.com/cdn/${leagueVer}/img/profileicon/${profile.profileIconId}.png `;
 
-                let mastery1 = await championById(mastery[0].championId.toString(), champions);
-                let mastery2 = await championById(mastery[1].championId.toString(), champions);
-                let mastery3 = await championById(mastery[2].championId.toString(), champions);
-
-                mastery1 = mastery1.match(/[^A-Za-z]/) ? mastery1.replace(/[^A-Za-z0-9]/g, '') : mastery1;
-                mastery2 = mastery2.match(/[^A-Za-z]/) ? mastery2.replace(/[^A-Za-z0-9]/g, '') : mastery2;
-                mastery3 = mastery3.match(/[^A-Za-z]/) ? mastery3.replace(/[^A-Za-z0-9]/g, '') : mastery3;
+                let mastery1 = championById(mastery[0].championId.toString(), champions);
+                let mastery2 = championById(mastery[1].championId.toString(), champions);
+                let mastery3 = championById(mastery[2].championId.toString(), champions);
 
                 let fields = [{
                     name: 'Masteries',
