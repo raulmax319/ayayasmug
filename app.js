@@ -29,6 +29,7 @@ client.on('message', async message => {
     const comando = message.content.split(' ')[0].replace(prefix, '').toLowerCase();
     const args = message.content.split(' ');
     const args2 = args.slice(1).join(' ');
+    console.log(args2);
     const serverQueue = queue.get(message.guild.id);
     const location = args.slice(1, 2).join(' ');
 

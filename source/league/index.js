@@ -125,12 +125,12 @@ module.exports = {
 
             if (location.length > 2) {
                 //if the person doesn't type the location after the command (the location will be 'br' by default and profileName will be the string contained inside location)
-                profileName = location;
-                console.log(profileName);
+                profileName = args;
+                //console.log(profileName);
                 location = 'br';
             } else {
                 profileName = args.split(' ').slice(1).join(' ');
-                console.log(profileName);
+                //console.log(profileName);
                 server = constants.serverList(location);
                 console.log(server);
             }
