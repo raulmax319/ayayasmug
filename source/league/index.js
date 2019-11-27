@@ -1,8 +1,8 @@
 const { Client, Util, RichEmbed } = require('discord.js');
 const axios = require('axios');
-const keys = require('./keys');
-const constants = require('../league/constants');
-const functions = require('./functions');
+const keys = require('../keys');
+const constants = require('./constants');
+const functions = require('../functions');
 
 async function version() {
     const res = await axios.get('https://ddragon.leagueoflegends.com/api/versions.json');

@@ -1,6 +1,5 @@
 const { Client, Util, RichEmbed } = require('discord.js');
 const ytdl = require('ytdl-core');
-const keys = require('../keys');
 const queue = require('./queue');
 const f = require('../functions');
 const embed = new RichEmbed();
